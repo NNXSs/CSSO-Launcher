@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>CS:SO Launcher</title>
+  <style>
+    :root {
+      --bg-color: #2b2d31;
+      --panel-color: #313338;
+      --text-color: #ffffff;
+      --label-color: #b5bac1;
+      --input-bg: #1e1f22;
+      --input-border: #1a1b1e;
+      --button-bg: #5865f2;
+      --button-hover: #4752c4;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-color);
+      position: relative;
+    }
+
+    .launcher-container {
+      background-color: var(--panel-color);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+      width: 500px;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      font-size: 24px;
+      color: var(--text-color);
+    }
+
+    .input-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      width: 120px;
+      text-align: right;
+      margin-right: 10px;
+      font-weight: bold;
+      color: var(--label-color);
+    }
+
+    .input-group input {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--text-color);
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      font-size: 16px;
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .language-select {
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      color: var(--text-color);
+    }
+
+    .language-select select {
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--text-color);
+      border-radius: 4px;
+      padding: 5px;
+    }
+
+    .footer-left {
+      position: absolute;
+      bottom: 15px;
+      left: 20px;
+      color: var(--label-color);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="launcher-container">
+    <h1 id="title">CS:SO Launcher</h1>
+
+    <div class="input-group">
+      <label for="playerName" id="label-name">Nombre:</label>
+      <input type="text" id="playerName" placeholder="">
+    </div>
+
+    <div class="input-group">
+      <label for="launchParams" id="label-params">Parámetros:</label>
+      <input type="text" id="launchParams"
+             value="hl2.exe -game csso -steam -silent -novid"
+             placeholder="">
+    </div>
+
+    <button onclick="launchApp()" id="launch-button">Iniciar Juego</button>
+  </div>
+
+  <div class="footer-left">
+    <div id="created-text">Creado por: Resac</div>
+    <div id="version-text">Versión: 1.0</div>
+  </div>
+
+  <div class="language-select">
+    <select id="language" onchange="changeLanguage()">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="pt">Português</option>
+    </select>
+  </div>
+
+  <script>
+    const translations = {
+      es: {
+        title: "CS:SO Launcher",
+        name: "Nombre:",
+        params: "Parámetros:",
+        launch: "Iniciar Juego",
+        created: "Creado por: Resac",
+        version: "Versión: 1.0"
+      },
+      en: {
+        title: "CS:SO Launcher",
+        name: "Name:",
+        params: "Launch Params:",
+        launch: "Launch Game",
+        created: "Created by: Resac",
+        version: "Version: 1.0"
+      },
+      pt: {
+        title: "CS:SO Launcher",
+        name: "Nome:",
+        params: "Parâmetros:",
+        launch: "Iniciar Jogo",
+        created: "Criado por: Resac",
+        version: "Versão: 1.0"
+      }
+    };
+
+    function changeLanguage() {
+      const lang = document.getElementById("language").value;
+      const t = translations[lang];
+      document.getElementById("title").textContent = t.title;
+      document.getElementById("label-name").textContent = t.name;
+      document.getElementById("label-params").textContent = t.params;
+      document.getElementById("launch-button").textContent = t.launch;
+      document.getElementById("created-text").textContent = t.created;
+      document.getElementById("version-text").textContent = t.version;
+    }
+
+    function launchApp() {
+      const playerName = document.getElementById("playerName").value;
+      const launchParams = document.getElementById("launchParams").value;
+      window.electronAPI.launchGame(playerName, launchParams);
+    }
+
+    // Guardado automático al cerrar
+    window.addEventListener('beforeunload', () => {
+      const settings = {
+        playerName: document.getElementById("playerName").value,
+        launchParams: document.getElementById("launchParams").value,
+        language: document.getElementById("language").value
+      };
+      window.electronAPI.saveSettings(settings);
+    });
+
+    // Cargar configuración guardada al iniciar
+    window.electronAPI.onLoadSettings((data) => {
+      if (data) {
+        document.getElementById("playerName").value = data.playerName || '';
+        document.getElementById("launchParams").value = data.launchParams || '';
+        document.getElementById("language").value = data.language || 'es';
+        changeLanguage();
+      }
+    });
+
+    changeLanguage();
+  </script>
+</body>
+</html>
